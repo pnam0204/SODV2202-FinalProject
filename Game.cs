@@ -8,7 +8,7 @@ namespace SODV2202_FinalProject
 {
     public partial class Game : Form
     {
-        private UnoDeck deck;
+        private UnoDeck UnoDeck;
         private List<UnoCard> playerHand, botHand;
         private UnoCard currentCard;
         private string wildColor; //This hold the choosen color of the previous wild card played
@@ -17,11 +17,11 @@ namespace SODV2202_FinalProject
         public Game()
         {
             InitializeComponent();
-            adjustLayout();
+            AdjustLayout();
 
             StartGame();
         }
-        private void adjustLayout()
+        private void AdjustLayout()
         {
             // Center lblStatus at the top
             lblStatus.Left = (this.ClientSize.Width - lblStatus.Width) / 2;
@@ -42,20 +42,20 @@ namespace SODV2202_FinalProject
         private void StartGame()
         {
             wildColor = "Wild";
-            deck = new UnoDeck();
+            UnoDeck = new UnoDeck();
             playerHand = new List<UnoCard>();
             botHand = new List<UnoCard>();
-            // Draw 7 cards for the player
+            // Draw 7 cards for the player and bot
             for (int i = 0; i < 7; i++)
             {
-                playerHand.Add(deck.DrawCard());
-                botHand.Add(deck.DrawCard());
+                playerHand.Add(UnoDeck.DrawCard());
+                botHand.Add(UnoDeck.DrawCard());
             }
             // Set the first card on the discard pile, redraw if it's a wild card
             do
             {
-                currentCard = deck.DrawCard();
-                deck.discardPile.Add(currentCard);
+                currentCard = UnoDeck.DrawCard();
+                UnoDeck.discardPile.Add(currentCard);
             } while (currentCard.Color == "Wild");
 
             currentPlayer = Player.Human;
@@ -113,14 +113,12 @@ namespace SODV2202_FinalProject
                 card.Color == "Wild" ||
                 card.Color == wildColor);
         }
-        private void PlayCard(UnoCard card, List<UnoCard> hand)
+        private async Task PlayBotCard(UnoCard card, List<UnoCard> hand)
         {
             hand.Remove(card);
             currentCard = card;
-            deck.discardPile.Add(card);
-        }
-        private async Task HandleBotPlayedCard(UnoCard card)
-        {
+            UnoDeck.discardPile.Add(card);
+
             if (card.Color == "Wild")
             {
                 wildColor = ChooseRandomColor();
@@ -133,9 +131,9 @@ namespace SODV2202_FinalProject
                 lblStatus.Text = $"Bot played {card.Color} {card.Value}.";
             }
 
-            if (card.Value == "Skip" || 
-                card.Value == "Reverse" || 
-                card.Value == "Draw 2" || 
+            if (card.Value == "Skip" ||
+                card.Value == "Reverse" ||
+                card.Value == "Draw 2" ||
                 card.Value == "Draw 4")
             {
                 await HandleEventCard(card);
@@ -152,8 +150,7 @@ namespace SODV2202_FinalProject
                 UnoCard validCard = FindValidCard(botHand);
                 if (validCard != null)
                 {
-                    PlayCard(validCard, botHand);
-                    await HandleBotPlayedCard(validCard);
+                    await PlayBotCard(validCard, botHand);
                     break;
                 }
                 else
@@ -162,9 +159,6 @@ namespace SODV2202_FinalProject
                     await DrawCards(1, botHand);
                     lblStatus.Text = "Bot drew a card.";
                     await Task.Delay(500);
-
-                    if (FindValidCard(botHand) != null) continue; // Retry with the new card
-                    break;
                 }
             }
             await Task.Delay(1000); // Delay before switching back to player
@@ -234,13 +228,13 @@ namespace SODV2202_FinalProject
         {
             for (int i = 0; i < numberOfCards; i++)
             {
-                if (deck.RemainingCards == 0)
+                if (UnoDeck.RemainingCards == 0)
                 {
-                    deck.Reshuffle();
+                    UnoDeck.Reshuffle();
                     lblStatus.Text = "Deck reshuffled!";
                     await Task.Delay(1000);
                 }
-                var card = deck.DrawCard();
+                var card = UnoDeck.DrawCard();
                 if (card != null) hand.Add(card);
             }
             UpdateUI();
@@ -340,7 +334,7 @@ namespace SODV2202_FinalProject
         {
             playerHand.Remove(card);
             currentCard = card;
-            deck.discardPile.Add(card);
+            UnoDeck.discardPile.Add(card);
 
             if (card.Color == "Wild")
             {
@@ -356,22 +350,25 @@ namespace SODV2202_FinalProject
                 await Task.Delay(1000);
             }
 
-            if (card.Value == "Skip" || card.Value == "Reverse" || card.Value == "Draw 2" || card.Value == "Draw 4")
+            if (card.Value == "Skip" || 
+                card.Value == "Reverse" || 
+                card.Value == "Draw 2" || 
+                card.Value == "Draw 4")
             {
                 await HandleEventCard(card);
             }
             UpdateUI();
             NextTurn();
         }
-        private async Task DrawPlayerCard()
+        private async void pbDrawCard_Click(object sender, EventArgs e)
         {
-            if (deck.RemainingCards == 0)
+            if (UnoDeck.RemainingCards == 0)
             {
-                deck.Reshuffle();
+                UnoDeck.Reshuffle();
                 lblStatus.Text = "Deck reshuffled!";
                 await Task.Delay(1000);
             }
-            var newCard = deck.DrawCard();
+            var newCard = UnoDeck.DrawCard();
             if (newCard != null)
             {
                 // Show the card player just pulled before add to player hand and update UI
@@ -383,10 +380,6 @@ namespace SODV2202_FinalProject
                 lblStatus.Text = "You drew a card.";
                 await Task.Delay(1000);
             }
-        }
-        private async void pbDrawCard_Click(object sender, EventArgs e)
-        {
-            await DrawPlayerCard();
         }
         private async void CardPictureBox_Click(object sender, EventArgs e)
         {
@@ -402,13 +395,13 @@ namespace SODV2202_FinalProject
             }
             else
             {
-                lblStatus.Text = "Invalid card! Play a matching color or value.";
+                lblStatus.Text = "Invalid card! Play a matching color or value. Or draw a new card";
                 await Task.Delay(1000);
             }
         }
         private void Game_Resize(object sender, EventArgs e)
         {
-            adjustLayout();
+            AdjustLayout();
         }
     }
 }
