@@ -169,7 +169,7 @@ namespace SODV2202_FinalProject
             string[] colors = { "Red", "Green", "Blue", "Yellow" };
             return colors[new Random().Next(colors.Length)];
         }
-        private string ChooseColor()
+        private async Task<string> ChooseColorAsync()
         {
             string color = "Wild";
             using (ColorForm form = new ColorForm())
@@ -181,7 +181,7 @@ namespace SODV2202_FinalProject
                     color = form.SelectedColor;
                 }
             }
-            return color;
+            return await Task.FromResult(color);
         }
         private void UpdateUI()
         {
@@ -338,7 +338,7 @@ namespace SODV2202_FinalProject
 
             if (card.Color == "Wild")
             {
-                string chosenColor = ChooseColor();
+                string chosenColor = await ChooseColorAsync();
                 wildColor = chosenColor;
                 lblStatus.Text = $"You played a Wild card! Color is now {chosenColor}.";
                 await Task.Delay(1000);

@@ -12,7 +12,7 @@ namespace SODV2202_FinalProject
 {
     public partial class ColorForm : Form
     {
-        public string SelectedColor { get; private set; }
+        public string SelectedColor { get; private set; } = null;
         public ColorForm()
         {
             InitializeComponent();
@@ -43,6 +43,16 @@ namespace SODV2202_FinalProject
             SelectedColor = "Yellow";
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void ColorForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (string.IsNullOrEmpty(SelectedColor))
+            {
+                // Prevent closing if no color is selected
+                MessageBox.Show("You must choose a color before closing the form!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                e.Cancel = true;
+            }
         }
     }
 }

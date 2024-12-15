@@ -96,9 +96,11 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(482, 453);
+            ControlBox = false;
             Controls.Add(panel1);
             Name = "ColorForm";
             Text = "Choose Color";
+            FormClosing += ColorForm_FormClosing;
             panel1.ResumeLayout(false);
             ResumeLayout(false);
         }
